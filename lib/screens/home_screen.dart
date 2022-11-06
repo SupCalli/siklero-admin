@@ -15,9 +15,7 @@ class HomeScreen extends StatelessWidget {
         height: 50,
         width: 60,
         child: FloatingActionButton(
-          onPressed: () {
-            print('Godbless this Mofo');
-          },
+          onPressed: () {},
           backgroundColor: Color(0xFFE45F1E), //E45F1E
           child: const Icon(
             Icons.settings,
@@ -34,19 +32,25 @@ class HomeScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                const Image(
-                  image: AssetImage(
-                    'images/siklero-logo.png',
-                  ),
-                  height: 90.0,
-                ),
-                Container(
-                  margin: EdgeInsets.only(left: 30),
-                  child: const Image(
+                const Hero(
+                  tag: 'logo',
+                  child: Image(
                     image: AssetImage(
-                      'images/red-ribbon.png',
+                      'images/siklero-logo.png',
                     ),
-                    height: 35.0,
+                    height: 130.0,
+                  ),
+                ),
+                Hero(
+                  tag: 'red-ribbon',
+                  child: Container(
+                    //margin: EdgeInsets.only(left: 30),
+                    child: const Image(
+                      image: AssetImage(
+                        'images/red-ribbon.png',
+                      ),
+                      height: 35.0,
+                    ),
                   ),
                 ),
               ],
@@ -71,7 +75,6 @@ class HomeScreen extends StatelessWidget {
                     description: 'Bicycle Failures Recorded',
                     function: 'view',
                     imagePath: 'images/repair-icon.png',
-                    imageMargin: '5',
                     onPressed: () {
                       Navigator.push(
                           context,
@@ -85,7 +88,6 @@ class HomeScreen extends StatelessWidget {
                     description: 'Regular (?) Users',
                     function: 'manage',
                     imagePath: 'images/user-icon.png',
-                    imageMargin: '50',
                     onPressed: () {
                       Navigator.push(
                           context,
@@ -94,20 +96,19 @@ class HomeScreen extends StatelessWidget {
                           ));
                     },
                   ),
-                  ReusableCard(
-                    recordedNumber: '4',
-                    description: 'Admin Users',
-                    function: 'manage',
-                    imagePath: 'images/user-icon.png',
-                    imageMargin: '80',
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ManageAdmins(),
-                          ));
-                    },
-                  ),
+                  // ReusableCard(
+                  //   recordedNumber: '4',
+                  //   description: 'Admin Users',
+                  //   function: 'manage',
+                  //   imagePath: 'images/user-icon.png',
+                  //   onPressed: () {
+                  //     Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           builder: (context) => ManageAdmins(),
+                  //         ));
+                  //   },
+                  // ),
                   const SizedBox(
                     height: 70,
                   )
@@ -126,7 +127,6 @@ class ReusableCard extends StatelessWidget {
   final String description;
   final String function;
   final String imagePath;
-  final String imageMargin;
   final VoidCallback onPressed;
 
   ReusableCard(
@@ -134,26 +134,26 @@ class ReusableCard extends StatelessWidget {
       required this.description,
       required this.function,
       required this.imagePath,
-      required this.imageMargin,
       required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        //padding: EdgeInsets.only(bottom: 0),
-        margin: EdgeInsets.only(top: 10.0, bottom: 6.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.0),
-          color: Color(0xFFFFD4BC),
-        ),
-        //padding: EdgeInsets.only(bottom: 0),
-        child: Column(
-          children: [
-            Container(
-              margin: EdgeInsets.only(left: 10),
+    return Container(
+      //padding: EdgeInsets.only(bottom: 0),
+      margin: EdgeInsets.only(top: 10.0, bottom: 6.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.0),
+        color: Color(0xFFFFD4BC),
+      ),
+      //padding: EdgeInsets.only(bottom: 0),
+      child: Column(
+        children: [
+          Container(
+            //margin: EdgeInsets.only(left: 10),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 15.0, right: 10.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
@@ -178,8 +178,7 @@ class ReusableCard extends StatelessWidget {
                   ),
                   Container(
                     //margin: EdgeInsets.only(top: 20, left: 20),
-                    margin: EdgeInsets.only(
-                        top: 20, left: double.parse(imageMargin)),
+                    margin: EdgeInsets.only(top: 20),
                     child: Image(
                       image: AssetImage(
                         imagePath,
@@ -190,15 +189,18 @@ class ReusableCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(
-              height: 1.0,
-              width: 400.0,
-              child: Divider(
-                color: Color(0xFFED8F5B),
-                thickness: 1,
-              ),
+          ),
+          const SizedBox(
+            height: 1.0,
+            width: 400.0,
+            child: Divider(
+              color: Color(0xFFED8F5B),
+              thickness: 1,
             ),
-            Container(
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Container(
               margin: EdgeInsets.only(left: 20.0, right: 20.0, top: 1.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -222,9 +224,9 @@ class ReusableCard extends StatelessWidget {
                   ),
                 ],
               ),
-            )
-          ],
-        ),
+            ),
+          )
+        ],
       ),
     );
   }

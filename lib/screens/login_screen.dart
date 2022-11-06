@@ -24,12 +24,28 @@ class LogInScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                      child: Image(
-                        image: AssetImage('images/siklero-logo.png'),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: const [
+                        Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 1, vertical: 30),
+                          child: Hero(
+                            tag: 'logo',
+                            child: Image(
+                              image: AssetImage('images/siklero-logo.png'),
+                              height: 150,
+                            ),
+                          ),
+                        ),
+                        Hero(
+                          tag: 'red-ribbon',
+                          child: Image(
+                            image: AssetImage('images/red-ribbon.png'),
+                            height: 30,
+                          ),
+                        )
+                      ],
                     ),
                     Expanded(
                       child: Container(
@@ -142,11 +158,16 @@ class LogInScreen extends StatelessWidget {
                                     const EdgeInsets.symmetric(horizontal: 30),
                                 child: ElevatedButton(
                                     onPressed: () {
-                                      Navigator.push(
-                                          context,
+                                      // Navigator.push(
+                                      //     context,
+                                      //     MaterialPageRoute(
+                                      //       builder: (context) => HomeScreen(),
+                                      //     ));
+                                      Navigator.of(context).pushAndRemoveUntil(
                                           MaterialPageRoute(
                                             builder: (context) => HomeScreen(),
-                                          ));
+                                          ),
+                                          (route) => false);
                                     }, //signIn,
                                     style: ElevatedButton.styleFrom(
                                         shape: StadiumBorder(),

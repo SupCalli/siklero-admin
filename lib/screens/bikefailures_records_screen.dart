@@ -41,13 +41,13 @@ class BikeRecordsScreen extends StatelessWidget {
         margin: EdgeInsets.all(10.0),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.0), color: Colors.white),
-        child: Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              RecordsCard(),
-            ],
-          ),
+        child: ListView(
+          //crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            RecordsCard(),
+            RecordsCard(),
+            RecordsCard(),
+          ],
         ),
       ),
     );
