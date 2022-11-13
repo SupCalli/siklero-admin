@@ -1,6 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'editprofile_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:siklero_admin/models/users.dart';
+
+//print(user.address);
+final _firestore = FirebaseFirestore.instance;
 
 const kUserLabelTextStyle = TextStyle(
     fontFamily: 'OpenSansCondensed', fontWeight: FontWeight.w300, fontSize: 16);
@@ -38,50 +43,46 @@ class ManageUsers extends StatelessWidget {
               borderRadius: BorderRadius.circular(20.0), color: Colors.white),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    height: 40,
-                    margin: EdgeInsets.fromLTRB(180, 16, 30, 16),
-                    child: TextField(
-                      //controller: searchController,
-                      textAlignVertical: TextAlignVertical.bottom,
-                      style: TextStyle(fontSize: 15, color: Color(0xFFE45F1E)),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFFFFD4BC),
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          size: 17,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  height: 40,
+                  margin: EdgeInsets.fromLTRB(180, 16, 30, 16),
+                  child: TextField(
+                    //controller: searchController,
+                    textAlignVertical: TextAlignVertical.bottom,
+                    style: TextStyle(fontSize: 15, color: Color(0xFFE45F1E)),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Color(0xFFFFD4BC),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 17,
+                        color: Color(0xFFE45F1E),
+                      ),
+                      hintText: 'Search',
+                      hintStyle: (const TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFFE45F1E),
+                      )),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
                           color: Color(0xFFE45F1E),
                         ),
-                        hintText: 'Search',
-                        hintStyle: (const TextStyle(
-                          fontSize: 15,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
                           color: Color(0xFFE45F1E),
-                        )),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE45F1E),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFE45F1E),
-                          ),
                         ),
                       ),
                     ),
                   ),
-                  UsersCard(),
-                  UsersCard(),
-                  UsersCard(),
-                ],
-              ),
+                ),
+                UsersStream(),
+              ],
             ),
           ),
         ),
@@ -90,10 +91,73 @@ class ManageUsers extends StatelessWidget {
   }
 }
 
+class UsersStream extends StatelessWidget {
+  const UsersStream({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore.collection('user_profile').snapshots(), //collection
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              backgroundColor: Colors.lightBlueAccent,
+            ),
+          );
+        }
+        final users = snapshot.data?.docs.reversed;
+        List<UsersCard> userCards = [];
+        int counter = 0;
+        for (var user in users!) {
+          final userAddress = user.get('address');
+          final userEmail = user.get('username');
+          final userfName = user.get('first_name');
+          final userlName = user.get('last_name');
+          final userNumber = user.get('contact');
+          final userID = user.id;
+
+          //final numberCard =
+          counter++;
+          final userCard = UsersCard(
+            fName: userfName,
+            lName: userlName,
+            email: userEmail,
+            number: userNumber,
+            address: userAddress,
+            counter: counter,
+            userID: userID,
+          );
+          userCards.add(userCard);
+        }
+        print(userCards);
+        return Expanded(
+            child: ListView(
+          //reverse: true,
+          children: userCards,
+        ));
+      },
+    );
+  }
+}
+
 class UsersCard extends StatelessWidget {
-  const UsersCard({
-    Key? key,
-  }) : super(key: key);
+  UsersCard(
+      {required this.fName,
+      required this.lName,
+      required this.email,
+      required this.number,
+      required this.address,
+      required this.counter,
+      required this.userID});
+
+  final String address;
+  final String email;
+  final String fName;
+  final String lName;
+  final String number;
+  int counter;
+  final String userID;
 
   @override
   Widget build(BuildContext context) {
@@ -123,10 +187,10 @@ class UsersCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(15),
                             color: Color(0xFFED8F5B),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
-                              '01',
-                              style: TextStyle(
+                              '0${counter}',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'OpenSans',
                                 fontWeight: FontWeight.w700,
@@ -138,7 +202,13 @@ class UsersCard extends StatelessWidget {
                         GestureDetector(
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const EditProfileScreen(),
+                              builder: (context) => EditProfileScreen(
+                                  address: address,
+                                  email: email,
+                                  fName: fName,
+                                  lName: lName,
+                                  number: number,
+                                  userID: userID),
                             ));
                           },
                           child: Container(
@@ -162,17 +232,17 @@ class UsersCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const Text(
-                      'User\'s First Name',
-                      style: TextStyle(
+                    Text(
+                      '${fName}',
+                      style: const TextStyle(
                         fontFamily: 'OpenSansCondensed',
                         fontWeight: FontWeight.w700,
                         fontSize: 19,
                       ),
                     ),
-                    const Text(
-                      'User\'s Last Name',
-                      style: TextStyle(
+                    Text(
+                      '${lName}',
+                      style: const TextStyle(
                         fontFamily: 'OpenSansCondensed',
                         fontWeight: FontWeight.w700,
                         fontSize: 19,
@@ -190,9 +260,9 @@ class UsersCard extends StatelessWidget {
                 thickness: 1,
               ),
             ),
-            const Text('Email', style: kUserLabelTextStyle),
-            const Text('Contact Number', style: kUserLabelTextStyle),
-            const Text('Address', style: kUserLabelTextStyle),
+            Text('Email: ${email}', style: kUserLabelTextStyle),
+            Text('Contact Number: ${number}', style: kUserLabelTextStyle),
+            Text('Address: ${address}', style: kUserLabelTextStyle),
           ],
         ));
   }

@@ -1,7 +1,23 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:siklero_admin/screens/manage_users_screen.dart';
+import 'package:siklero_admin/screens/utils.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final String address;
+  final String email;
+  final String fName;
+  final String lName;
+  final String number;
+  final String userID;
+
+  EditProfileScreen(
+      {required this.address,
+      required this.email,
+      required this.fName,
+      required this.lName,
+      required this.number,
+      required this.userID});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -9,7 +25,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   // final user = FirebaseAuth.instance.currentUser!;
-  // final formKey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
   // UserData? userData = UserData();
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -29,6 +45,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     //   contactController.text = value.contact!;
     //   addressController.text = value.address!;
     // });
+    fnameController.text = widget.fName;
+    lnameController.text = widget.lName;
+    usernameController.text = widget.email;
+    addressController.text = widget.address;
+    contactController.text = widget.number;
 
     super.initState();
   }
@@ -85,7 +106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               topLeft: Radius.circular(60),
                               topRight: Radius.circular(60))),
                       child: Form(
-                        //key: formKey,
+                        key: formKey,
                         child: Column(
                           children: <Widget>[
                             const SizedBox(
@@ -105,8 +126,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 30),
-                              child: _buildTextField('First Name:', 'Jonathan',
-                                  6, fnameController, false),
+                              child: _buildTextField('First Name:',
+                                  widget.fName, 6, fnameController, false),
                             ),
                             const SizedBox(
                               height: 20,
@@ -114,8 +135,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 30),
-                              child: _buildTextField('Last Name:', 'Doe', 6,
-                                  lnameController, false),
+                              child: _buildTextField('Last Name:', widget.lName,
+                                  6, lnameController, false),
                             ),
                             const SizedBox(
                               height: 20,
@@ -124,7 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 30),
                               child: _buildTextField('Contact #:',
-                                  '09669978081', 6, contactController, false),
+                                  widget.number, 6, contactController, false),
                             ),
                             const SizedBox(
                               height: 20,
@@ -132,12 +153,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 30),
-                              child: _buildTextField(
-                                  'Address:',
-                                  'This is an Address',
-                                  6,
-                                  addressController,
-                                  false),
+                              child: _buildTextField('Address:', widget.address,
+                                  6, addressController, false),
                             ),
                             const SizedBox(
                               height: 20,
@@ -145,7 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             Container(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 30),
-                              child: _buildTextField('Username:', 'johndoe09',
+                              child: _buildTextField('Username:', widget.email,
                                   6, usernameController, false),
                             ),
                             const SizedBox(
@@ -162,7 +179,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   contactController,
                                   addressController,
                                   usernameController,
-                                  'user.uid',
+                                  widget.userID,
                                 )),
                           ],
                         ),
@@ -220,8 +237,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       TextEditingController usernameController,
       String userID) {
     Future editProfile() async {
-      //final isValid = formKey.currentState!.validate();
-      // if (!isValid) return;
+      final isValid = formKey.currentState!.validate();
+      if (!isValid) return;
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -237,10 +254,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             actions: <Widget>[
               TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    int count = 0;
+                    //Navigator.of(context).pop();
+                    Navigator.popUntil(context, (route) => count++ == 2);
                     //print(fnameController.text);
-                    // updateUser();
-                    // Utils.showSnackBar("Profile updated!");
+                    updateUser();
+                    Utils.showSnackBar('Profile updated!');
+                    //print('profile updated');
+
+                    //Navigator.of(context).popUntil((route) => '/ManageUsers');
                   },
                   child: const Text("Yes")),
               TextButton(
@@ -270,20 +292,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ));
   }
 
-  // Future<UserData?> updateUser() async {
-  //
-  //   final docUser = FirebaseFirestore.instance.collection('user_profile').doc(user.uid);
-  //
-  //   docUser.update({
-  //     'address': addressController.text,
-  //     'contact': contactController.text,
-  //     'first_name': fnameController.text,
-  //     'last_name': lnameController.text,
-  //     'username': usernameController.text
-  //   });
-  //
-  //   return null;
-  // }
+  Future<String?> updateUser() async {
+    final docUser = FirebaseFirestore.instance
+        .collection('user_profile')
+        .doc(widget.userID);
+
+    docUser.update({
+      'address': addressController.text,
+      'contact': contactController.text,
+      'first_name': fnameController.text,
+      'last_name': lnameController.text,
+      'username': usernameController.text
+    });
+
+    return null;
+  }
 
   // Future<UserData?> readUser() async {
   //

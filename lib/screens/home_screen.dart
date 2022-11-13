@@ -4,8 +4,8 @@ import 'package:siklero_admin/screens/bikefailures_records_screen.dart';
 import 'package:siklero_admin/screens/login_screen.dart';
 import 'package:siklero_admin/screens/manage_admins_screen.dart';
 import 'package:siklero_admin/screens/manage_users_screen.dart';
-
 import 'editprofile_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,8 +15,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  var numberOfUsers;
+
+  void assigning() async {
+    String regularUsers = await countUsers();
+    setState(() {
+      numberOfUsers = regularUsers;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    assigning();
     return Scaffold(
       floatingActionButton: Container(
         height: 50,
@@ -98,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   ReusableCard(
-                    recordedNumber: '24',
+                    recordedNumber: '${numberOfUsers}',
                     description: 'Regular Users',
                     function: 'manage',
                     imagePath: 'images/user-icon.png',
@@ -134,6 +144,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Future<String> countUsers() async => await FirebaseFirestore.instance
+          .collection("user_profile")
+          .get()
+          .then((querySnapshot) {
+        //print('This is the number of Users ${querySnapshot.size}');
+        return numberOfUsers = querySnapshot.size.toString();
+      });
 
   Widget makeDismissible({required Widget child}) => GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -431,9 +449,9 @@ class EditButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => const EditProfileScreen(),
-          ));
+          // Navigator.of(context).push(MaterialPageRoute(
+          //   builder: (context) => const EditProfileScreen(),
+          // ));
         },
         style: ElevatedButton.styleFrom(
             shape: const StadiumBorder(),

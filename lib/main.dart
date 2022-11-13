@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:siklero_admin/screens/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'screens/manage_users_screen.dart';
 
-void main() {
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -11,7 +15,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: LogInScreen(),
+      //home: LogInScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LogInScreen(),
+        '/ManageUsers': (context) => const ManageUsers(),
+      },
     );
   }
 }
