@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LogInScreen(),
-        '/ManageUsers': (context) => const ManageUsers(),
+        '/ManageUsers': (context) => ManageUsers(),
       },
     );
   }

@@ -256,10 +256,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onPressed: () {
                     int count = 0;
                     //Navigator.of(context).pop();
+                    isDone = false;
                     Navigator.popUntil(context, (route) => count++ == 2);
                     //print(fnameController.text);
                     updateUser();
                     Utils.showSnackBar('Profile updated!');
+
                     //print('profile updated');
 
                     //Navigator.of(context).popUntil((route) => '/ManageUsers');

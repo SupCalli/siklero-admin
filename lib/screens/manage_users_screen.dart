@@ -4,15 +4,23 @@ import 'editprofile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:siklero_admin/models/users.dart';
 
-//print(user.address);
 final _firestore = FirebaseFirestore.instance;
 
 const kUserLabelTextStyle = TextStyle(
     fontFamily: 'OpenSansCondensed', fontWeight: FontWeight.w300, fontSize: 16);
 
-class ManageUsers extends StatelessWidget {
-  const ManageUsers({Key? key}) : super(key: key);
+List<UsersCard> searchCards = [];
+bool isDone = false;
+final searchController = TextEditingController();
 
+class ManageUsers extends StatefulWidget {
+  ManageUsers({Key? key}) : super(key: key);
+
+  @override
+  State<ManageUsers> createState() => _ManageUsersState();
+}
+
+class _ManageUsersState extends State<ManageUsers> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -50,7 +58,7 @@ class ManageUsers extends StatelessWidget {
                   height: 40,
                   margin: EdgeInsets.fromLTRB(180, 16, 30, 16),
                   child: TextField(
-                    //controller: searchController,
+                    controller: searchController,
                     textAlignVertical: TextAlignVertical.bottom,
                     style: TextStyle(fontSize: 15, color: Color(0xFFE45F1E)),
                     decoration: InputDecoration(
@@ -79,6 +87,7 @@ class ManageUsers extends StatelessWidget {
                         ),
                       ),
                     ),
+                    onChanged: searchUser,
                   ),
                 ),
                 UsersStream(),
@@ -89,11 +98,27 @@ class ManageUsers extends StatelessWidget {
       ),
     );
   }
+
+  void searchUser(String query) {
+    final suggestions = userCards.where((user) {
+      final userLName = user.lName.toLowerCase();
+      final input = query.toLowerCase();
+      return userLName.contains(input);
+    }).toList();
+    setState(() {
+      searchCards = suggestions;
+    });
+  }
 }
 
-class UsersStream extends StatelessWidget {
+class UsersStream extends StatefulWidget {
   const UsersStream({Key? key}) : super(key: key);
 
+  @override
+  State<UsersStream> createState() => _UsersStreamState();
+}
+
+class _UsersStreamState extends State<UsersStream> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -106,36 +131,53 @@ class UsersStream extends StatelessWidget {
             ),
           );
         }
-        final users = snapshot.data?.docs.reversed;
-        List<UsersCard> userCards = [];
-        int counter = 0;
-        for (var user in users!) {
-          final userAddress = user.get('address');
-          final userEmail = user.get('username');
-          final userfName = user.get('first_name');
-          final userlName = user.get('last_name');
-          final userNumber = user.get('contact');
-          final userID = user.id;
 
-          //final numberCard =
-          counter++;
-          final userCard = UsersCard(
-            fName: userfName,
-            lName: userlName,
-            email: userEmail,
-            number: userNumber,
-            address: userAddress,
-            counter: counter,
-            userID: userID,
-          );
-          userCards.add(userCard);
+        if (!isDone || snapshot.data?.docs.length != userCards.length) {
+          final users = snapshot.data?.docs.reversed;
+          //here
+          int counter = 0;
+          userCards.clear();
+          for (var user in users!) {
+            counter++;
+            final userAddress = user.get('address');
+            final userEmail = user.get('username');
+            final userfName = user.get('first_name');
+            final userlName = user.get('last_name');
+            final userNumber = user.get('contact');
+            final userID = user.id;
+
+            final userCard = UsersCard(
+              fName: userfName,
+              lName: userlName,
+              email: userEmail,
+              number: userNumber,
+              address: userAddress,
+              counter: counter,
+              userID: userID,
+            );
+            userCards.add(userCard);
+          }
+
+          searchCards = userCards;
+          isDone = true;
         }
-        print(userCards);
+
         return Expanded(
-            child: ListView(
-          //reverse: true,
-          children: userCards,
-        ));
+          child: ListView.builder(
+              itemCount: searchCards.length,
+              itemBuilder: (context, index) {
+                final searchCard = searchCards[index];
+
+                return UsersCard(
+                    fName: searchCard.fName,
+                    lName: searchCard.lName,
+                    email: searchCard.email,
+                    number: searchCard.number,
+                    address: searchCard.address,
+                    counter: searchCard.counter,
+                    userID: searchCard.userID);
+              }),
+        );
       },
     );
   }
@@ -210,6 +252,8 @@ class UsersCard extends StatelessWidget {
                                   number: number,
                                   userID: userID),
                             ));
+                            isDone = false;
+                            searchController.clear();
                           },
                           child: Container(
                             margin: EdgeInsets.only(left: 5),
@@ -267,3 +311,5 @@ class UsersCard extends StatelessWidget {
         ));
   }
 }
+
+List<UsersCard> userCards = [];
