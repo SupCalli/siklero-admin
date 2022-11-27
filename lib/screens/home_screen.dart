@@ -15,12 +15,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var numberOfUsers;
+  String? numberOfUsers;
+  String? numberOfSosCalls;
 
   void assigning() async {
-    String regularUsers = await countUsers();
+    String? regularUsers = await countUsers();
+    String? sosCalls = await countSosCalls();
     setState(() {
       numberOfUsers = regularUsers;
+      numberOfSosCalls = sosCalls;
     });
   }
 
@@ -95,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   SizedBox(height: 10),
                   ReusableCard(
-                    recordedNumber: '15',
+                    recordedNumber: numberOfSosCalls!,
                     description: 'Bicycle Failures Records',
                     function: 'view',
                     imagePath: 'images/repair-icon.png',
@@ -151,6 +154,14 @@ class _HomeScreenState extends State<HomeScreen> {
           .then((querySnapshot) {
         //print('This is the number of Users ${querySnapshot.size}');
         return numberOfUsers = querySnapshot.size.toString();
+      });
+
+  Future<String> countSosCalls() async => await FirebaseFirestore.instance
+          .collection("sos_call")
+          .get()
+          .then((querySnapshot) {
+        //print('This is the number of Users ${querySnapshot.size}');
+        return numberOfSosCalls = querySnapshot.size.toString();
       });
 
   Widget makeDismissible({required Widget child}) => GestureDetector(

@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 const kUserDetailsTextStyle = TextStyle(
     fontFamily: 'OpenSansCondensed',
@@ -50,8 +52,8 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
           margin: EdgeInsets.all(10.0),
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20.0), color: Colors.white),
-          child: ListView(
-            //crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
                 height: 40,
@@ -88,9 +90,8 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
                   ),
                 ),
               ),
-              RecordsCard(),
-              RecordsCard(),
-              RecordsCard(),
+              //RecordsCard(),
+              RecordsStream(),
             ],
           ),
         ),
@@ -99,10 +100,107 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
   }
 }
 
+class RecordsStream extends StatefulWidget {
+  const RecordsStream({Key? key}) : super(key: key);
+
+  @override
+  State<RecordsStream> createState() => _RecordsStreamState();
+}
+
+class _RecordsStreamState extends State<RecordsStream> {
+  var caller;
+
+  void assigning(String userID) async {
+    String? callerName = await readUser(userID);
+    setState(() {
+      caller = callerName;
+      isDone = true;
+    });
+  }
+
+  bool isDone = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('sos_call').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.lightBlueAccent,
+              ),
+            );
+          }
+          final records = snapshot.data?.docs;
+          List<RecordsCard> recordCards = [];
+          //isDone = true;
+          for (var record in records!) {
+            final recordedDetails = record.get('sos_details');
+            final recordedUser = record.get('caller_id');
+            final recordedDate = record.get('created_at').toDate();
+            final recordedLocation = record.get('city');
+            // final recordedLatitude = record.get('coordinates').latitude;
+            // final recordedLongitude = record.get('coordinates').longitude;
+
+            //DateTime
+            String time = DateFormat('hh:mm a').format(recordedDate);
+            String date = DateFormat('MMMM dd, yyyy').format(recordedDate);
+
+            if (!isDone) {
+              assigning(recordedUser);
+            }
+
+            final recordCard = RecordsCard(
+              details: recordedDetails,
+              caller: caller.toString(),
+              date: date,
+              location: recordedLocation,
+              time: time,
+            );
+
+            recordCards.add(recordCard);
+            //((doc) => "[${doc.get('coords').latitude}, ${doc.get('coords').longitude}]");
+          }
+          print('Snapshot Size: ${snapshot.data?.docs.length}');
+          return Expanded(
+            child: ListView(
+              children: recordCards,
+            ),
+          );
+        });
+  }
+
+  Future<String?> readUser(String userID) async {
+    ///Get Single Document by ID
+    final docUser =
+        FirebaseFirestore.instance.collection('user_profile').doc(userID);
+    final snapshot = await docUser.get(); // get 1 document snapshot
+    if (snapshot.exists) {
+      //return User.fromJson(snapshot.data()!);
+      return snapshot.get('first_name') + ' ' + snapshot.get('last_name');
+    } else {
+      return 'No User';
+    }
+    //
+  }
+}
+
 class RecordsCard extends StatelessWidget {
   const RecordsCard({
     Key? key,
+    required this.details,
+    required this.caller,
+    required this.date,
+    required this.location,
+    required this.time,
   }) : super(key: key);
+
+  final String details;
+  final String caller;
+  final String date;
+  final String location;
+  final String time;
 
   @override
   Widget build(BuildContext context) {
@@ -138,8 +236,8 @@ class RecordsCard extends StatelessWidget {
                   width: 40,
                 ),
                 Column(
-                  children: const [
-                    Text(
+                  children: [
+                    const Text(
                       'Bicycle Failure Details:',
                       style: TextStyle(
                           fontFamily: 'OpenSansCondensed',
@@ -148,8 +246,8 @@ class RecordsCard extends StatelessWidget {
                           color: Color(0xFF581D00)),
                     ),
                     Text(
-                      'Insert Bicyle Failure',
-                      style: (TextStyle(
+                      details,
+                      style: (const TextStyle(
                           fontFamily: 'OpenSansCondensed',
                           fontWeight: FontWeight.w700,
                           fontSize: 17,
@@ -177,13 +275,13 @@ class RecordsCard extends StatelessWidget {
                       fontSize: 18),
                 )),
             Row(
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'Caller: ',
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  'Caller\'s Name',
+                  caller,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -201,37 +299,37 @@ class RecordsCard extends StatelessWidget {
               ],
             ),
             Row(
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'Date: ',
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  'Insert Date',
+                  date,
                   style: kUserDetailsTextStyle,
                 ),
               ],
             ),
             Row(
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'Time: ',
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  'Insert Time',
+                  time,
                   style: kUserDetailsTextStyle,
                 ),
               ],
             ),
             Row(
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'Location: ',
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  'Insert Location',
+                  location,
                   style: kUserDetailsTextStyle,
                 ),
               ],
