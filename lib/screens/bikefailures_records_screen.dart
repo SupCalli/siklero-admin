@@ -100,28 +100,13 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
   }
 }
 
-class RecordsStream extends StatefulWidget {
+class RecordsStream extends StatelessWidget {
   const RecordsStream({Key? key}) : super(key: key);
 
-  @override
-  State<RecordsStream> createState() => _RecordsStreamState();
-}
-
-class _RecordsStreamState extends State<RecordsStream> {
-  var caller;
-
-  void assigning(String userID) async {
-    String? callerName = await readUser(userID);
-    setState(() {
-      caller = callerName;
-      isDone = true;
-    });
-  }
-
-  bool isDone = false;
-
+  // var caller;
   @override
   Widget build(BuildContext context) {
+    // print('widget build entrance');
     return StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('sos_call').snapshots(),
         builder: (context, snapshot) {
@@ -135,32 +120,30 @@ class _RecordsStreamState extends State<RecordsStream> {
           final records = snapshot.data?.docs;
           List<RecordsCard> recordCards = [];
           //isDone = true;
+          int counter = 0;
           for (var record in records!) {
+            // print('for loop entrance');
             final recordedDetails = record.get('sos_details');
             final recordedUser = record.get('caller_id');
-            final recordedDate = record.get('created_at').toDate();
+            DateTime recordedDate = record.get('created_at').toDate();
             final recordedLocation = record.get('city');
             // final recordedLatitude = record.get('coordinates').latitude;
             // final recordedLongitude = record.get('coordinates').longitude;
 
-            //DateTime
+            counter++;
+
             String time = DateFormat('hh:mm a').format(recordedDate);
             String date = DateFormat('MMMM dd, yyyy').format(recordedDate);
 
-            if (!isDone) {
-              assigning(recordedUser);
-            }
-
             final recordCard = RecordsCard(
               details: recordedDetails,
-              caller: caller.toString(),
+              caller: recordedUser,
               date: date,
               location: recordedLocation,
               time: time,
             );
 
             recordCards.add(recordCard);
-            //((doc) => "[${doc.get('coords').latitude}, ${doc.get('coords').longitude}]");
           }
           print('Snapshot Size: ${snapshot.data?.docs.length}');
           return Expanded(
@@ -170,23 +153,9 @@ class _RecordsStreamState extends State<RecordsStream> {
           );
         });
   }
-
-  Future<String?> readUser(String userID) async {
-    ///Get Single Document by ID
-    final docUser =
-        FirebaseFirestore.instance.collection('user_profile').doc(userID);
-    final snapshot = await docUser.get(); // get 1 document snapshot
-    if (snapshot.exists) {
-      //return User.fromJson(snapshot.data()!);
-      return snapshot.get('first_name') + ' ' + snapshot.get('last_name');
-    } else {
-      return 'No User';
-    }
-    //
-  }
 }
 
-class RecordsCard extends StatelessWidget {
+class RecordsCard extends StatefulWidget {
   const RecordsCard({
     Key? key,
     required this.details,
@@ -203,7 +172,33 @@ class RecordsCard extends StatelessWidget {
   final String time;
 
   @override
+  State<RecordsCard> createState() => _RecordsCardState();
+}
+
+class _RecordsCardState extends State<RecordsCard> {
+  String? callerName;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    assigning();
+    super.initState();
+  }
+
+  void assigning() async {
+    print('assigning function');
+    final caller = await readUser(widget.caller);
+    print('after await function');
+    setState(() {
+      callerName = caller;
+    });
+    print('done assigning');
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print('widget builder');
+
     return Container(
       margin: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -246,7 +241,7 @@ class RecordsCard extends StatelessWidget {
                           color: Color(0xFF581D00)),
                     ),
                     Text(
-                      details,
+                      widget.details,
                       style: (const TextStyle(
                           fontFamily: 'OpenSansCondensed',
                           fontWeight: FontWeight.w700,
@@ -281,7 +276,7 @@ class RecordsCard extends StatelessWidget {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  caller,
+                  callerName.toString(),
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -305,7 +300,7 @@ class RecordsCard extends StatelessWidget {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  date,
+                  widget.date,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -317,7 +312,7 @@ class RecordsCard extends StatelessWidget {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  time,
+                  widget.time,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -329,7 +324,7 @@ class RecordsCard extends StatelessWidget {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  location,
+                  widget.location,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -339,4 +334,18 @@ class RecordsCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<String?> readUser(String userID) async {
+  ///Get Single Document by ID
+  final docUser =
+      FirebaseFirestore.instance.collection('user_profile').doc(userID);
+  final snapshot = await docUser.get(); // get 1 document snapshot
+  if (snapshot.exists) {
+    //return User.fromJson(snapshot.data()!);
+    return snapshot.get('first_name') + ' ' + snapshot.get('last_name');
+  } else {
+    return 'No User';
+  }
+  //
 }

@@ -15,21 +15,31 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    assigning();
+    super.initState();
+  }
+
   String? numberOfUsers;
   String? numberOfSosCalls;
 
   void assigning() async {
+    print('assigning function');
     String? regularUsers = await countUsers();
     String? sosCalls = await countSosCalls();
     setState(() {
       numberOfUsers = regularUsers;
       numberOfSosCalls = sosCalls;
     });
+
+    print('end of assigning function');
   }
 
   @override
   Widget build(BuildContext context) {
-    assigning();
+    print('widget builder');
     return Scaffold(
       floatingActionButton: Container(
         height: 50,
@@ -98,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   SizedBox(height: 10),
                   ReusableCard(
-                    recordedNumber: numberOfSosCalls!,
+                    recordedNumber: numberOfSosCalls.toString(),
                     description: 'Bicycle Failures Records',
                     function: 'view',
                     imagePath: 'images/repair-icon.png',
@@ -153,6 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .get()
           .then((querySnapshot) {
         //print('This is the number of Users ${querySnapshot.size}');
+        print('countUsers function');
         return numberOfUsers = querySnapshot.size.toString();
       });
 
@@ -160,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection("sos_call")
           .get()
           .then((querySnapshot) {
+        print('countSOScall function');
         //print('This is the number of Users ${querySnapshot.size}');
         return numberOfSosCalls = querySnapshot.size.toString();
       });
