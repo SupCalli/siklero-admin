@@ -33,13 +33,10 @@ class _HomeScreenState extends State<HomeScreen> {
       numberOfUsers = regularUsers;
       numberOfSosCalls = sosCalls;
     });
-
-    print('end of assigning function');
   }
 
   @override
   Widget build(BuildContext context) {
-    print('widget builder');
     return Scaffold(
       floatingActionButton: Container(
         height: 50,
@@ -103,53 +100,68 @@ class _HomeScreenState extends State<HomeScreen> {
                     topLeft: Radius.circular(30.0),
                     topRight: Radius.circular(30.0)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: 10),
-                  ReusableCard(
-                    recordedNumber: numberOfSosCalls.toString(),
-                    description: 'Bicycle Failures Records',
-                    function: 'view',
-                    imagePath: 'images/repair-icon.png',
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BikeRecordsScreen(),
-                          ));
-                    },
-                  ),
-                  ReusableCard(
-                    recordedNumber: '${numberOfUsers}',
-                    description: 'Regular Users',
-                    function: 'manage',
-                    imagePath: 'images/user-icon.png',
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ManageUsers(),
-                          ));
-                    },
-                  ),
-                  // ReusableCard(
-                  //   recordedNumber: '4',
-                  //   description: 'Admin Users',
-                  //   function: 'manage',
-                  //   imagePath: 'images/user-icon.png',
-                  //   onPressed: () {
-                  //     Navigator.push(
-                  //         context,
-                  //         MaterialPageRoute(
-                  //           builder: (context) => ManageAdmins(),
-                  //         ));
-                  //   },
-                  // ),
-                  const SizedBox(
-                    height: 70,
-                  )
-                ],
+              child: Scrollbar(
+                child: ListView(
+                  //crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    //SizedBox(height: 10),
+                    ReusableCard(
+                      recordedNumber: numberOfSosCalls.toString(),
+                      description: 'Bicycle Failures Records',
+                      function: 'view',
+                      imagePath: 'images/repair-icon.png',
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BikeRecordsScreen(),
+                            ));
+                      },
+                    ),
+                    ReusableCard(
+                      recordedNumber: '${numberOfUsers}',
+                      description: 'Regular Users',
+                      function: 'manage',
+                      imagePath: 'images/user-icon.png',
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ManageUsers(),
+                            ));
+                      },
+                    ),
+                    ReusableCard(
+                      recordedNumber: '4',
+                      description: 'Helper Users',
+                      function: 'manage',
+                      imagePath: 'images/user-icon.png',
+                      onPressed: () {
+                        // Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //       builder: (context) => ManageAdmins(),
+                        //     ));
+                      },
+                    ),
+                    ReusableCard(
+                      recordedNumber: '4',
+                      description: 'Pending SOS call',
+                      function: 'manage',
+                      imagePath: 'images/user-icon.png',
+                      onPressed: () {
+                        // Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //       builder: (context) => ManageAdmins(),
+                        //     ));
+                      },
+                    ),
+                    const SizedBox(
+                      height: 70,
+                    )
+                  ],
+                ),
               ),
             ),
           ),
@@ -162,8 +174,6 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection("user_profile")
           .get()
           .then((querySnapshot) {
-        //print('This is the number of Users ${querySnapshot.size}');
-        print('countUsers function');
         return numberOfUsers = querySnapshot.size.toString();
       });
 
@@ -171,8 +181,6 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection("sos_call")
           .get()
           .then((querySnapshot) {
-        print('countSOScall function');
-        //print('This is the number of Users ${querySnapshot.size}');
         return numberOfSosCalls = querySnapshot.size.toString();
       });
 

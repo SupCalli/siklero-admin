@@ -14,6 +14,9 @@ const kUserLabelTextStyle = TextStyle(
     fontSize: 15,
     color: Color(0xFF581D00));
 
+List<RecordsCard> searchCards = [];
+bool isDone = false;
+
 class BikeRecordsScreen extends StatefulWidget {
   const BikeRecordsScreen({Key? key}) : super(key: key);
 
@@ -88,6 +91,7 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
                       ),
                     ),
                   ),
+                  onChanged: searchUser,
                 ),
               ),
               //RecordsCard(),
@@ -98,18 +102,69 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
       ),
     );
   }
+
+  void searchUser(String query) {
+    final suggestions = userCards.where((record) {
+      final callerName = record.caller.toLowerCase();
+      final input = query.toLowerCase();
+      return callerName.contains(input);
+    }).toList();
+    setState(() {
+      searchCards = suggestions;
+    });
+  }
 }
 
-class RecordsStream extends StatelessWidget {
+class RecordsStream extends StatefulWidget {
   const RecordsStream({Key? key}) : super(key: key);
 
-  // var caller;
+  @override
+  State<RecordsStream> createState() => _RecordsStreamState();
+}
+
+class _RecordsStreamState extends State<RecordsStream> {
+  late Stream<List<RecordsCard>> recordsStream;
+  var caller;
+  bool isDone = false;
+
+  Future<RecordsCard> generateRecords(DocumentSnapshot snapshot) async {
+    final callerName = await readUser(snapshot.get('caller_id'));
+    String time =
+        DateFormat('hh:mm a').format(snapshot.get('created_at').toDate());
+    String date =
+        DateFormat('MMMM dd, yyyy').format(snapshot.get('created_at').toDate());
+
+    //print(callerName! + time + date);
+
+    return RecordsCard(
+        details: snapshot.get('sos_details'),
+        caller: callerName.toString(),
+        date: date,
+        location: snapshot.get('city'),
+        time: time);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    recordsStream = FirebaseFirestore.instance
+        .collection('sos_call')
+        .snapshots()
+        .asyncMap((records) => Future.wait(
+            [for (var record in records.docs) generateRecords(record)]));
+    // firestoreStream =
+    //     FirebaseFirestore.instance.collection('sos_call').snapshots();
+    setState(() {});
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // print('widget build entrance');
-    return StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('sos_call').snapshots(),
+    return StreamBuilder<List<RecordsCard>>(
+        stream: recordsStream,
         builder: (context, snapshot) {
+          //print('This is a record', {$records});
           if (!snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(
@@ -117,45 +172,48 @@ class RecordsStream extends StatelessWidget {
               ),
             );
           }
-          final records = snapshot.data?.docs;
-          List<RecordsCard> recordCards = [];
-          //isDone = true;
-          int counter = 0;
-          for (var record in records!) {
-            // print('for loop entrance');
-            final recordedDetails = record.get('sos_details');
-            final recordedUser = record.get('caller_id');
-            DateTime recordedDate = record.get('created_at').toDate();
-            final recordedLocation = record.get('city');
-            // final recordedLatitude = record.get('coordinates').latitude;
-            // final recordedLongitude = record.get('coordinates').longitude;
-
-            counter++;
-
-            String time = DateFormat('hh:mm a').format(recordedDate);
-            String date = DateFormat('MMMM dd, yyyy').format(recordedDate);
-
-            final recordCard = RecordsCard(
-              details: recordedDetails,
-              caller: recordedUser,
-              date: date,
-              location: recordedLocation,
-              time: time,
-            );
-
-            recordCards.add(recordCard);
+          final records = snapshot.data;
+          if (!isDone || snapshot.data?.length != userCards.length) {
+            userCards.clear();
+            userCards = records!;
+            searchCards = userCards;
+            isDone = true;
           }
-          print('Snapshot Size: ${snapshot.data?.docs.length}');
+          // print('Snapshot Size: ${snapshot.data?.docs.length}');
           return Expanded(
-            child: ListView(
-              children: recordCards,
+            child: ListView.builder(
+              itemCount: searchCards.length,
+              itemBuilder: (context, index) {
+                final searchCard = searchCards[index];
+
+                return RecordsCard(
+                    details: searchCard.details,
+                    caller: searchCard.caller,
+                    date: searchCard.date,
+                    location: searchCard.location,
+                    time: searchCard.time);
+              },
             ),
           );
         });
   }
+
+  Future<String?> readUser(String userID) async {
+    ///Get Single Document by ID
+    final docUser =
+        FirebaseFirestore.instance.collection('user_profile').doc(userID);
+    final snapshot = await docUser.get(); // get 1 document snapshot
+    if (snapshot.exists) {
+      //return User.fromJson(snapshot.data()!);
+      return snapshot.get('first_name') + ' ' + snapshot.get('last_name');
+    } else {
+      return 'No User';
+    }
+    //
+  }
 }
 
-class RecordsCard extends StatefulWidget {
+class RecordsCard extends StatelessWidget {
   const RecordsCard({
     Key? key,
     required this.details,
@@ -172,33 +230,7 @@ class RecordsCard extends StatefulWidget {
   final String time;
 
   @override
-  State<RecordsCard> createState() => _RecordsCardState();
-}
-
-class _RecordsCardState extends State<RecordsCard> {
-  String? callerName;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    assigning();
-    super.initState();
-  }
-
-  void assigning() async {
-    print('assigning function');
-    final caller = await readUser(widget.caller);
-    print('after await function');
-    setState(() {
-      callerName = caller;
-    });
-    print('done assigning');
-  }
-
-  @override
   Widget build(BuildContext context) {
-    print('widget builder');
-
     return Container(
       margin: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -241,7 +273,7 @@ class _RecordsCardState extends State<RecordsCard> {
                           color: Color(0xFF581D00)),
                     ),
                     Text(
-                      widget.details,
+                      details,
                       style: (const TextStyle(
                           fontFamily: 'OpenSansCondensed',
                           fontWeight: FontWeight.w700,
@@ -276,7 +308,7 @@ class _RecordsCardState extends State<RecordsCard> {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  callerName.toString(),
+                  caller,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -300,7 +332,7 @@ class _RecordsCardState extends State<RecordsCard> {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  widget.date,
+                  date,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -312,7 +344,7 @@ class _RecordsCardState extends State<RecordsCard> {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  widget.time,
+                  time,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -324,7 +356,7 @@ class _RecordsCardState extends State<RecordsCard> {
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  widget.location,
+                  location,
                   style: kUserDetailsTextStyle,
                 ),
               ],
@@ -336,16 +368,4 @@ class _RecordsCardState extends State<RecordsCard> {
   }
 }
 
-Future<String?> readUser(String userID) async {
-  ///Get Single Document by ID
-  final docUser =
-      FirebaseFirestore.instance.collection('user_profile').doc(userID);
-  final snapshot = await docUser.get(); // get 1 document snapshot
-  if (snapshot.exists) {
-    //return User.fromJson(snapshot.data()!);
-    return snapshot.get('first_name') + ' ' + snapshot.get('last_name');
-  } else {
-    return 'No User';
-  }
-  //
-}
+List<RecordsCard> userCards = [];
