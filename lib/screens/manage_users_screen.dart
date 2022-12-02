@@ -22,6 +22,15 @@ class ManageUsers extends StatefulWidget {
 
 class _ManageUsersState extends State<ManageUsers> {
   @override
+  void initState() {
+    // TODO: implement initState
+    searchController.clear();
+    searchCards.clear();
+    isDone = false;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
@@ -101,9 +110,9 @@ class _ManageUsersState extends State<ManageUsers> {
 
   void searchUser(String query) {
     final suggestions = userCards.where((user) {
-      final userLName = user.lName.toLowerCase();
+      final userName = user.lName.toLowerCase() + user.fName.toLowerCase();
       final input = query.toLowerCase();
-      return userLName.contains(input);
+      return userName.contains(input);
     }).toList();
     setState(() {
       searchCards = suggestions;

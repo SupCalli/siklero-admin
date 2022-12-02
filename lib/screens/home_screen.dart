@@ -4,8 +4,11 @@ import 'package:siklero_admin/screens/bikefailures_records_screen.dart';
 import 'package:siklero_admin/screens/login_screen.dart';
 import 'package:siklero_admin/screens/manage_admins_screen.dart';
 import 'package:siklero_admin/screens/manage_users_screen.dart';
+import 'package:siklero_admin/screens/sos_calls_screen.dart';
 import 'editprofile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'helper_users_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -24,14 +27,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String? numberOfUsers;
   String? numberOfSosCalls;
+  String? numberOfPendingSosCalls;
 
   void assigning() async {
-    print('assigning function');
     String? regularUsers = await countUsers();
     String? sosCalls = await countSosCalls();
+    String? pendingSosCalls = await countPendingSosCalls();
     setState(() {
       numberOfUsers = regularUsers;
       numberOfSosCalls = sosCalls;
+      numberOfPendingSosCalls = pendingSosCalls;
     });
   }
 
@@ -62,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Container(
             padding:
-                EdgeInsets.only(top: 70, left: 30.0, right: 0.0, bottom: 40.0),
+                EdgeInsets.only(top: 40, left: 30.0, right: 0.0, bottom: 20.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -114,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => BikeRecordsScreen(),
+                              builder: (context) => const BikeRecordsScreen(),
                             ));
                       },
                     ),
@@ -137,24 +142,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       function: 'manage',
                       imagePath: 'images/user-icon.png',
                       onPressed: () {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (context) => ManageAdmins(),
-                        //     ));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ManageHelpers(),
+                            ));
                       },
                     ),
                     ReusableCard(
-                      recordedNumber: '4',
+                      recordedNumber: numberOfPendingSosCalls.toString(),
                       description: 'Pending SOS call',
                       function: 'manage',
                       imagePath: 'images/user-icon.png',
                       onPressed: () {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (context) => ManageAdmins(),
-                        //     ));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ManageSOS(),
+                            ));
                       },
                     ),
                     const SizedBox(
@@ -181,6 +186,16 @@ class _HomeScreenState extends State<HomeScreen> {
           .collection("sos_call")
           .get()
           .then((querySnapshot) {
+        return numberOfSosCalls = querySnapshot.size.toString();
+      });
+  Future<String> countPendingSosCalls() async =>
+      await FirebaseFirestore.instance
+          .collection('sos_call')
+          .where('is_active', isEqualTo: true)
+          .where('is_reviewed', isEqualTo: false)
+          .get()
+          .then((querySnapshot) {
+        print(querySnapshot.size.toString());
         return numberOfSosCalls = querySnapshot.size.toString();
       });
 
