@@ -10,6 +10,7 @@ class EditProfileScreen extends StatefulWidget {
   final String lName;
   final String number;
   final String userID;
+  final bool isRegular;
 
   EditProfileScreen(
       {required this.address,
@@ -17,7 +18,8 @@ class EditProfileScreen extends StatefulWidget {
       required this.fName,
       required this.lName,
       required this.number,
-      required this.userID});
+      required this.userID,
+      required this.isRegular});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -181,6 +183,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   usernameController,
                                   widget.userID,
                                 )),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Container(
+                                width: double.infinity,
+                                height: 50,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 30),
+                                child: widget.isRegular
+                                    ? _buildSwitchTypeButtonToHelper(
+                                        fnameController,
+                                        lnameController,
+                                        contactController,
+                                        addressController,
+                                        usernameController,
+                                        widget.userID)
+                                    : _buildSwitchTypeButtonToRegular(
+                                        fnameController,
+                                        lnameController,
+                                        contactController,
+                                        addressController,
+                                        usernameController,
+                                        widget.userID)),
+                            SizedBox(
+                              height: 20,
+                            ),
                           ],
                         ),
                       ),
@@ -257,14 +285,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     int count = 0;
                     //Navigator.of(context).pop();
                     isDone = false;
+                    updateUser();
+
                     Navigator.popUntil(context, (route) => count++ == 2);
                     //print(fnameController.text);
-                    updateUser();
                     Utils.showSnackBar('Profile updated!');
-
                     //print('profile updated');
-
-                    //Navigator.of(context).popUntil((route) => '/ManageUsers');
                   },
                   child: const Text("Yes")),
               TextButton(
@@ -294,7 +320,137 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ));
   }
 
-  Future<String?> updateUser() async {
+  Widget _buildSwitchTypeButtonToHelper(
+      TextEditingController fnameController,
+      TextEditingController lnameController,
+      TextEditingController contactController,
+      TextEditingController addressController,
+      TextEditingController usernameController,
+      String userID) {
+    Future changeRole() async {
+      final isValid = formKey.currentState!.validate();
+      if (!isValid) return;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Confirmation"),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: const <Widget>[
+                  Text("Switch this user to helper?"),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    int count = 0;
+                    //Navigator.of(context).pop();
+                    isDone = false;
+                    changeUserType();
+
+                    Navigator.popUntil(context, (route) => count++ == 2);
+                    //print(fnameController.text);
+                    Utils.showSnackBar('Profile updated!');
+                    //print('profile updated');
+
+                    //Navigator.of(context).popUntil((route) => '/ManageUsers');
+                  },
+                  child: const Text("Yes")),
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("No"))
+            ],
+          );
+        },
+      );
+      //print("pumapasok");
+    }
+
+    return ElevatedButton(
+        onPressed: changeRole,
+        style: ElevatedButton.styleFrom(
+            shape: const StadiumBorder(),
+            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xffe45f1e)),
+        child: const Text(
+          'Change User Type to Helper',
+          style: TextStyle(
+              fontFamily: 'OpenSans',
+              fontSize: 24,
+              fontWeight: FontWeight.w700),
+        ));
+  }
+
+  Widget _buildSwitchTypeButtonToRegular(
+      TextEditingController fnameController,
+      TextEditingController lnameController,
+      TextEditingController contactController,
+      TextEditingController addressController,
+      TextEditingController usernameController,
+      String userID) {
+    Future changeRole() async {
+      final isValid = formKey.currentState!.validate();
+      if (!isValid) return;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Confirmation"),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: const <Widget>[
+                  Text("Switch this user to Regular?"),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    int count = 0;
+                    //Navigator.of(context).pop();
+                    isDone = false;
+                    changeUserType();
+
+                    Navigator.popUntil(context, (route) => count++ == 2);
+                    //print(fnameController.text);
+                    Utils.showSnackBar('Profile updated!');
+                    //print('profile updated');
+
+                    //Navigator.of(context).popUntil((route) => '/ManageUsers');
+                  },
+                  child: const Text("Yes")),
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("No"))
+            ],
+          );
+        },
+      );
+      //print("pumapasok");
+    }
+
+    return ElevatedButton(
+        onPressed: changeRole,
+        style: ElevatedButton.styleFrom(
+            shape: const StadiumBorder(),
+            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xffe45f1e)),
+        child: const Text(
+          'Change User Type to Helper',
+          style: TextStyle(
+              fontFamily: 'OpenSans',
+              fontSize: 24,
+              fontWeight: FontWeight.w700),
+        ));
+  }
+
+  void updateUser() {
     final docUser = FirebaseFirestore.instance
         .collection('user_profile')
         .doc(widget.userID);
@@ -306,19 +462,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'last_name': lnameController.text,
       'username': usernameController.text
     });
-
-    return null;
   }
 
-  // Future<UserData?> readUser() async {
-  //
-  //   final docUser = FirebaseFirestore.instance.collection('user_profile').doc(user.uid);
-  //   final userSnapShot = await docUser.get();
-  //
-  //   if (userSnapShot.exists) {
-  //     return UserData.fromJSON(userSnapShot.data()!);
-  //   }
-  //
-  //   return null;
-  // }
+  void changeUserType() {
+    final docUser = FirebaseFirestore.instance
+        .collection('user_profile')
+        .doc(widget.userID);
+
+    if (widget.isRegular) {
+      docUser.update({
+        'role': 'Helper',
+      });
+    } else {
+      docUser.update({
+        'role': 'Regular',
+      });
+    }
+  }
 }

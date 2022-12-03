@@ -25,18 +25,21 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
-  String? numberOfUsers;
+  String? numberOfRegularUsers;
+  String? numberOfHelperUsers;
   String? numberOfSosCalls;
   String? numberOfPendingSosCalls;
 
   void assigning() async {
-    String? regularUsers = await countUsers();
+    String? regularUsers = await countRegularUsers();
     String? sosCalls = await countSosCalls();
     String? pendingSosCalls = await countPendingSosCalls();
+    String? helperUsers = await countHelperUsers();
     setState(() {
-      numberOfUsers = regularUsers;
+      numberOfRegularUsers = regularUsers;
       numberOfSosCalls = sosCalls;
       numberOfPendingSosCalls = pendingSosCalls;
+      numberOfHelperUsers = helperUsers;
     });
   }
 
@@ -105,67 +108,81 @@ class _HomeScreenState extends State<HomeScreen> {
                     topLeft: Radius.circular(30.0),
                     topRight: Radius.circular(30.0)),
               ),
-              child: Scrollbar(
-                child: ListView(
-                  //crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    //SizedBox(height: 10),
-                    ReusableCard(
-                      recordedNumber: numberOfSosCalls.toString(),
-                      description: 'Bicycle Failures Records',
-                      function: 'view',
-                      imagePath: 'images/repair-icon.png',
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BikeRecordsScreen(),
-                            ));
-                      },
-                    ),
-                    ReusableCard(
-                      recordedNumber: '${numberOfUsers}',
-                      description: 'Regular Users',
-                      function: 'manage',
-                      imagePath: 'images/user-icon.png',
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ManageUsers(),
-                            ));
-                      },
-                    ),
-                    ReusableCard(
-                      recordedNumber: '4',
-                      description: 'Helper Users',
-                      function: 'manage',
-                      imagePath: 'images/user-icon.png',
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ManageHelpers(),
-                            ));
-                      },
-                    ),
-                    ReusableCard(
-                      recordedNumber: numberOfPendingSosCalls.toString(),
-                      description: 'Pending SOS call',
-                      function: 'manage',
-                      imagePath: 'images/user-icon.png',
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ManageSOS(),
-                            ));
-                      },
-                    ),
-                    const SizedBox(
-                      height: 70,
-                    )
-                  ],
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  String? regularUsers = await countRegularUsers();
+                  String? sosCalls = await countSosCalls();
+                  String? pendingSosCalls = await countPendingSosCalls();
+                  String? helperUsers = await countHelperUsers();
+                  setState(() {
+                    numberOfRegularUsers = regularUsers;
+                    numberOfSosCalls = sosCalls;
+                    numberOfPendingSosCalls = pendingSosCalls;
+                    numberOfHelperUsers = helperUsers;
+                  });
+                },
+                child: Scrollbar(
+                  child: ListView(
+                    //crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      //SizedBox(height: 10),
+                      ReusableCard(
+                        recordedNumber: numberOfSosCalls.toString(),
+                        description: 'Bicycle Failures Records',
+                        function: 'view',
+                        imagePath: 'images/repair-icon.png',
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const BikeRecordsScreen(),
+                              ));
+                        },
+                      ),
+                      ReusableCard(
+                        recordedNumber: '${numberOfRegularUsers}',
+                        description: 'Regular Users',
+                        function: 'manage',
+                        imagePath: 'images/user-icon.png',
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ManageUsers(),
+                              ));
+                        },
+                      ),
+                      ReusableCard(
+                        recordedNumber: numberOfHelperUsers.toString(),
+                        description: 'Helper Users',
+                        function: 'manage',
+                        imagePath: 'images/user-icon.png',
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ManageHelpers(),
+                              ));
+                        },
+                      ),
+                      ReusableCard(
+                        recordedNumber: numberOfPendingSosCalls.toString(),
+                        description: 'Pending SOS call',
+                        function: 'manage',
+                        imagePath: 'images/user-icon.png',
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ManageSOS(),
+                              ));
+                        },
+                      ),
+                      const SizedBox(
+                        height: 70,
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -175,11 +192,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<String> countUsers() async => await FirebaseFirestore.instance
+  Future<String> countRegularUsers() async => await FirebaseFirestore.instance
           .collection("user_profile")
+          .where("role", isEqualTo: "Regular")
           .get()
           .then((querySnapshot) {
-        return numberOfUsers = querySnapshot.size.toString();
+        return numberOfRegularUsers = querySnapshot.size.toString();
+      });
+  Future<String> countHelperUsers() async => await FirebaseFirestore.instance
+          .collection("user_profile")
+          .where("role", isEqualTo: "Helper")
+          .get()
+          .then((querySnapshot) {
+        return numberOfHelperUsers = querySnapshot.size.toString();
       });
 
   Future<String> countSosCalls() async => await FirebaseFirestore.instance

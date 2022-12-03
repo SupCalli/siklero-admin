@@ -110,7 +110,9 @@ class _ManageUsersState extends State<ManageUsers> {
 
   void searchUser(String query) {
     final suggestions = userCards.where((user) {
-      final userName = user.lName.toLowerCase() + user.fName.toLowerCase();
+      final userName =
+          user.fName.toLowerCase() + ' ' + user.lName.toLowerCase();
+      print(userName);
       final input = query.toLowerCase();
       return userName.contains(input);
     }).toList();
@@ -126,12 +128,17 @@ class UsersStream extends StatefulWidget {
   @override
   State<UsersStream> createState() => _UsersStreamState();
 }
+//     .where("role", isEqualTo: "regular")
+// .snapshots()
 
 class _UsersStreamState extends State<UsersStream> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('user_profile').snapshots(), //collection
+      stream: _firestore
+          .collection('user_profile')
+          .where("role", isEqualTo: "Regular")
+          .snapshots(), //collection
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -154,6 +161,8 @@ class _UsersStreamState extends State<UsersStream> {
             final userlName = user.get('last_name');
             final userNumber = user.get('contact');
             final userID = user.id;
+
+            print(userfName + userlName);
 
             final userCard = UsersCard(
               fName: userfName,
@@ -254,12 +263,14 @@ class UsersCard extends StatelessWidget {
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => EditProfileScreen(
-                                  address: address,
-                                  email: email,
-                                  fName: fName,
-                                  lName: lName,
-                                  number: number,
-                                  userID: userID),
+                                address: address,
+                                email: email,
+                                fName: fName,
+                                lName: lName,
+                                number: number,
+                                userID: userID,
+                                isRegular: true,
+                              ),
                             ));
                             isDone = false;
                             searchController.clear();
