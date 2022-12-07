@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:siklero_admin/constants.dart';
+import 'package:siklero_admin/screens/csv_screen.dart';
 
 List<RecordsCard> searchCards = [];
 bool isDone = false;
@@ -49,40 +50,63 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
             children: [
               Container(
                 height: 40,
-                margin: EdgeInsets.fromLTRB(180, 16, 30, 16),
-                child: TextField(
-                  controller: searchController,
-                  textAlignVertical: TextAlignVertical.bottom,
-                  style: TextStyle(fontSize: 15, color: Color(0xFFE45F1E)),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Color(0xFFFFD4BC),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      size: 17,
-                      color: Color(0xFFE45F1E),
-                    ),
-                    hintText: 'Search',
-                    hintStyle: (const TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFFE45F1E),
-                    )),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE45F1E),
+                margin: EdgeInsets.fromLTRB(100, 16, 30, 16),
+                child: Row(
+                  children: [
+                    IconButton(
+                        tooltip: 'Generate CSV file',
+                        color: Colors.green,
+                        onPressed: () {
+                          print('sheesh');
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CsvPage(records: userCards),
+                              ));
+                        },
+                        icon: Icon(Icons.print)),
+                    SizedBox(
+                      width: 200,
+                      height: 40,
+                      child: TextField(
+                        controller: searchController,
+                        textAlignVertical: TextAlignVertical.bottom,
+                        style:
+                            TextStyle(fontSize: 15, color: Color(0xFFE45F1E)),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Color(0xFFFFD4BC),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            size: 17,
+                            color: Color(0xFFE45F1E),
+                          ),
+                          hintText: 'Search',
+                          hintStyle: (const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFFE45F1E),
+                          )),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE45F1E),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE45F1E),
+                            ),
+                          ),
+                        ),
+                        onChanged: searchUser,
                       ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE45F1E),
-                      ),
-                    ),
-                  ),
-                  onChanged: searchUser,
+                  ],
                 ),
               ),
+
               //RecordsCard(),
               RecordsStream(),
             ],
@@ -117,20 +141,31 @@ class _RecordsStreamState extends State<RecordsStream> {
   bool isDone = false;
 
   Future<RecordsCard> generateRecords(DocumentSnapshot snapshot) async {
+    print('generate Records');
+
     final callerName = await readUser(snapshot.get('caller_id'));
+    final responderID = snapshot.get('respondant_id');
+    String? responderName;
+    if (responderID != null) {
+      responderName = await readUser(responderID);
+    } else {
+      responderName = '    ';
+    }
+
     String time =
         DateFormat('hh:mm a').format(snapshot.get('created_at').toDate());
     String date =
         DateFormat('MMMM dd, yyyy').format(snapshot.get('created_at').toDate());
 
-    //print(callerName! + time + date);
-
+    print(callerName! + time + date + responderName!);
     return RecordsCard(
-        details: snapshot.get('sos_details'),
-        caller: callerName.toString(),
-        date: date,
-        location: snapshot.get('city'),
-        time: time);
+      details: snapshot.get('sos_details'),
+      caller: callerName.toString(),
+      date: date,
+      location: snapshot.get('city'),
+      time: time,
+      responder: responderName.toString(),
+    );
   }
 
   @override
@@ -139,6 +174,7 @@ class _RecordsStreamState extends State<RecordsStream> {
 
     recordsStream = FirebaseFirestore.instance
         .collection('sos_call')
+        .orderBy('created_at', descending: false)
         .snapshots()
         .asyncMap((records) => Future.wait(
             [for (var record in records.docs) generateRecords(record)]));
@@ -160,30 +196,33 @@ class _RecordsStreamState extends State<RecordsStream> {
                 backgroundColor: Colors.lightBlueAccent,
               ),
             );
-          }
-          final records = snapshot.data;
-          if (!isDone || snapshot.data?.length != userCards.length) {
-            userCards.clear();
-            userCards = records!;
-            searchCards = userCards;
-            isDone = true;
-          }
-          // print('Snapshot Size: ${snapshot.data?.docs.length}');
-          return Expanded(
-            child: ListView.builder(
-              itemCount: searchCards.length,
-              itemBuilder: (context, index) {
-                final searchCard = searchCards[index];
+          } else {
+            final records = snapshot.data;
+            if (!isDone || snapshot.data?.length != userCards.length) {
+              userCards.clear();
+              userCards = records!;
+              searchCards = userCards;
+              isDone = true;
+            }
+            // print('Snapshot Size: ${snapshot.data?.docs.length}');
+            return Expanded(
+              child: ListView.builder(
+                itemCount: searchCards.length,
+                itemBuilder: (context, index) {
+                  final searchCard = searchCards[index];
 
-                return RecordsCard(
+                  return RecordsCard(
                     details: searchCard.details,
                     caller: searchCard.caller,
                     date: searchCard.date,
                     location: searchCard.location,
-                    time: searchCard.time);
-              },
-            ),
-          );
+                    time: searchCard.time,
+                    responder: searchCard.responder,
+                  );
+                },
+              ),
+            );
+          }
         });
   }
 
@@ -191,9 +230,8 @@ class _RecordsStreamState extends State<RecordsStream> {
     ///Get Single Document by ID
     final docUser =
         FirebaseFirestore.instance.collection('user_profile').doc(userID);
-    final snapshot = await docUser.get(); // get 1 document snapshot
+    final snapshot = await docUser.get();
     if (snapshot.exists) {
-      //return User.fromJson(snapshot.data()!);
       return snapshot.get('first_name') + ' ' + snapshot.get('last_name');
     } else {
       return 'No User';
@@ -210,6 +248,7 @@ class RecordsCard extends StatelessWidget {
     required this.date,
     required this.location,
     required this.time,
+    required this.responder,
   }) : super(key: key);
 
   final String details;
@@ -217,6 +256,7 @@ class RecordsCard extends StatelessWidget {
   final String date;
   final String location;
   final String time;
+  final String responder;
 
   @override
   Widget build(BuildContext context) {
@@ -303,13 +343,13 @@ class RecordsCard extends StatelessWidget {
               ],
             ),
             Row(
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'Responder: ',
                   style: kUserLabelTextStyle,
                 ),
                 Text(
-                  'Responder\'s Name',
+                  responder,
                   style: kUserDetailsTextStyle,
                 ),
               ],
