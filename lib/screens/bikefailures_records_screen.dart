@@ -2,10 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:siklero_admin/constants.dart';
-import 'package:siklero_admin/screens/csv_screen.dart';
+import 'package:to_csv/to_csv.dart' as exportCSV;
 
 List<RecordsCard> searchCards = [];
 bool isDone = false;
+
+//to_csv
+List<String> title = [];
+List<String> spaces = [];
+List<String> header = []; //Header list variable
+List<List<String>> listOfLists = [];
+List<String> dataRecord = [];
 
 class BikeRecordsScreen extends StatefulWidget {
   const BikeRecordsScreen({Key? key}) : super(key: key);
@@ -16,6 +23,30 @@ class BikeRecordsScreen extends StatefulWidget {
 
 class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
   final searchController = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    title.clear();
+    spaces.clear();
+    header.clear();
+    dataRecord.clear();
+    listOfLists.clear();
+    title.add(' ');
+    title.add(' ');
+    title.add('Bicycle Failure Records');
+    spaces.add('');
+    header.add('Caller');
+    header.add('Responder');
+    header.add('Date');
+    header.add('Time');
+    header.add('Location');
+
+    listOfLists.add(title);
+    listOfLists.add(spaces);
+    listOfLists.add(header);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,20 +81,62 @@ class _BikeRecordsScreenState extends State<BikeRecordsScreen> {
             children: [
               Container(
                 height: 40,
-                margin: EdgeInsets.fromLTRB(100, 16, 30, 16),
+                margin: EdgeInsets.fromLTRB(90, 16, 30, 16),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     IconButton(
                         tooltip: 'Generate CSV file',
                         color: Colors.green,
                         onPressed: () {
                           print('sheesh');
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    CsvPage(records: userCards),
-                              ));
+
+                          showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    'Export CSV?',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  // content: Text(
+                                  //     'Would you like to Export this into CSV'),
+                                  actions: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                shape: const StadiumBorder(),
+                                                foregroundColor: Colors.white,
+                                                backgroundColor:
+                                                    const Color(0xffe45f1e)),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('No')),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                                shape: const StadiumBorder(),
+                                                foregroundColor: Colors.white,
+                                                backgroundColor:
+                                                    const Color(0xffe45f1e)),
+                                            onPressed: () {
+                                              exportCSV.myCSV(
+                                                  header, listOfLists);
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text('Yes'))
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              });
                         },
                         icon: Icon(Icons.print)),
                     SizedBox(
@@ -202,6 +275,15 @@ class _RecordsStreamState extends State<RecordsStream> {
               userCards.clear();
               userCards = records!;
               searchCards = userCards;
+              for (var userCard in userCards) {
+                dataRecord.add(userCard.caller);
+                dataRecord.add(userCard.responder);
+                dataRecord.add(userCard.date);
+                dataRecord.add(userCard.time);
+                dataRecord.add(userCard.location);
+                listOfLists.add(dataRecord);
+                dataRecord = [];
+              }
               isDone = true;
             }
             // print('Snapshot Size: ${snapshot.data?.docs.length}');
