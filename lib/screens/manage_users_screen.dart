@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../constants.dart';
 import 'editprofile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:siklero_admin/models/users.dart';
@@ -249,7 +250,7 @@ class UsersCard extends StatelessWidget {
                           ),
                           child: Center(
                             child: Text(
-                              '0${counter}',
+                              '${counter}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'OpenSans',
@@ -324,9 +325,46 @@ class UsersCard extends StatelessWidget {
                 thickness: 1,
               ),
             ),
-            Text('Email: ${email}', style: kUserLabelTextStyle),
-            Text('Contact Number: ${number}', style: kUserLabelTextStyle),
-            Text('Address: ${address}', style: kUserLabelTextStyle),
+            Row(
+              children: [
+                const Text(
+                  'Username: ',
+                  style: kUserLabelTextStyle,
+                ),
+                Text(
+                  '${email}',
+                  style: kUserDetailsTextStyle,
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Text(
+                  'Contact Number: ',
+                  style: kUserLabelTextStyle,
+                ),
+                Text(
+                  '${number}',
+                  style: kUserDetailsTextStyle,
+                ),
+              ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                const Text(
+                  'Address: ',
+                  style: kUserLabelTextStyle,
+                ),
+                Text(
+                  '${address}',
+                  style: kUserDetailsTextStyle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ],
         ));
   }

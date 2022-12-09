@@ -212,10 +212,9 @@ class _RecordsStreamState extends State<RecordsStream> {
   late Stream<List<RecordsCard>> recordsStream;
   var caller;
   bool isDone = false;
+  int counter = 0;
 
   Future<RecordsCard> generateRecords(DocumentSnapshot snapshot) async {
-    print('generate Records');
-
     final callerName = await readUser(snapshot.get('caller_id'));
     final responderID = snapshot.get('respondant_id');
     String? responderName;
@@ -230,7 +229,7 @@ class _RecordsStreamState extends State<RecordsStream> {
     String date =
         DateFormat('MMMM dd, yyyy').format(snapshot.get('created_at').toDate());
 
-    print(callerName! + time + date + responderName!);
+    //print(callerName! + time + date + responderName!);
     return RecordsCard(
       details: snapshot.get('sos_details'),
       caller: callerName.toString(),
@@ -245,6 +244,7 @@ class _RecordsStreamState extends State<RecordsStream> {
   void initState() {
     // TODO: implement initState
 
+    counter = 0;
     recordsStream = FirebaseFirestore.instance
         .collection('sos_call')
         .orderBy('created_at', descending: false)
@@ -287,12 +287,14 @@ class _RecordsStreamState extends State<RecordsStream> {
               isDone = true;
             }
             // print('Snapshot Size: ${snapshot.data?.docs.length}');
+
             return Expanded(
               child: ListView.builder(
                 itemCount: searchCards.length,
                 itemBuilder: (context, index) {
                   final searchCard = searchCards[index];
 
+                  counter = index + 1;
                   return RecordsCard(
                     details: searchCard.details,
                     caller: searchCard.caller,
@@ -300,6 +302,7 @@ class _RecordsStreamState extends State<RecordsStream> {
                     location: searchCard.location,
                     time: searchCard.time,
                     responder: searchCard.responder,
+                    counter: counter,
                   );
                 },
               ),
@@ -331,6 +334,7 @@ class RecordsCard extends StatelessWidget {
     required this.location,
     required this.time,
     required this.responder,
+    this.counter,
   }) : super(key: key);
 
   final String details;
@@ -339,6 +343,7 @@ class RecordsCard extends StatelessWidget {
   final String location;
   final String time;
   final String responder;
+  final int? counter;
 
   @override
   Widget build(BuildContext context) {
@@ -359,10 +364,10 @@ class RecordsCard extends StatelessWidget {
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20.0),
                       color: Color(0xFFED8F5B)),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      '01',
-                      style: TextStyle(
+                      counter.toString(),
+                      style: const TextStyle(
                           fontFamily: 'OpenSans',
                           fontWeight: FontWeight.w700,
                           fontSize: 30,

@@ -239,7 +239,7 @@ class HelpersCard extends StatelessWidget {
                           ),
                           child: Center(
                             child: Text(
-                              '0${counter}',
+                              '${counter}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'OpenSans',
@@ -314,9 +314,42 @@ class HelpersCard extends StatelessWidget {
                 thickness: 1,
               ),
             ),
-            Text('Email: ${email}', style: kUserLabelTextStyle),
-            Text('Contact Number: ${number}', style: kUserLabelTextStyle),
-            Text('Address: ${address}', style: kUserLabelTextStyle),
+            Row(
+              children: [
+                const Text(
+                  'Username: ',
+                  style: kUserLabelTextStyle,
+                ),
+                Text(
+                  '${email}',
+                  style: kUserDetailsTextStyle,
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Text(
+                  'Contact Number: ',
+                  style: kUserLabelTextStyle,
+                ),
+                Text(
+                  '${number}',
+                  style: kUserDetailsTextStyle,
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Text(
+                  'Address: ',
+                  style: kUserLabelTextStyle,
+                ),
+                Text(
+                  '${address}',
+                  style: kUserDetailsTextStyle,
+                ),
+              ],
+            ),
           ],
         ));
   }
