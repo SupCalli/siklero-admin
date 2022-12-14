@@ -129,8 +129,6 @@ class UsersStream extends StatefulWidget {
   @override
   State<UsersStream> createState() => _UsersStreamState();
 }
-//     .where("role", isEqualTo: "regular")
-// .snapshots()
 
 class _UsersStreamState extends State<UsersStream> {
   @override
