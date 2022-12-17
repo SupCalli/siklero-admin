@@ -8,7 +8,10 @@ import 'package:siklero_admin/screens/bikefailures_records_screen.dart';
 import 'package:intl/intl.dart';
 
 class PdfReportsApi {
-  static Future<File> generate(List<RecordsCard> records) async {
+  static bool perMonth = false;
+
+  static Future<File> generate(
+      List<RecordsCard> records, String tableTitle) async {
     final pdf = Document();
 
     final imageJpg =
@@ -20,7 +23,9 @@ class PdfReportsApi {
       build: (context) => [
         buildLogo(imageJpg),
         buildTitle(date),
-        SizedBox(height: 3 * PdfPageFormat.cm),
+        SizedBox(height: 2 * PdfPageFormat.cm),
+        buildTableTitle(tableTitle),
+        SizedBox(height: 1 * PdfPageFormat.cm),
         buildRecords(records),
       ],
       footer: (context) => buildFooter(),
@@ -28,6 +33,12 @@ class PdfReportsApi {
 
     return PdfApi.saveDocument(name: 'bicycle_failures_records.pdf', pdf: pdf);
   }
+
+  static Widget buildTableTitle(String tableTitle) => Center(
+        child: Text(tableTitle,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center),
+      );
 
   static Widget buildTitle(DateTime date) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
