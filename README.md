@@ -1,6 +1,9 @@
 # siklero_admin
 
-A new Flutter project.
+An Admin Side of the Siklero App. The account manages regular accounts, helper accounts, and tracks 
+bicycle failure records, which can be generated as PDF and CSV records
+
+For the updated repo: https://github.com/aloegarden/siklero
 
 ## Getting Started
 
